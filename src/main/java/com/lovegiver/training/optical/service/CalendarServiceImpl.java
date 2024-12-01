@@ -72,11 +72,14 @@ public class CalendarServiceImpl implements CalendarService {
                 .setAccessType("offline")
                 .build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-                .setPort(8282)
+                .setPort(8888)
                 .setCallbackPath("/optime/googlecalendar/Callback")
                 .build();
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
         //returns an authorized Credential object.
+        System.out.println("Access token: " + credential.getAccessToken());
+        System.out.println("Refresh token: " + credential.getRefreshToken());
+        System.out.println("Expiry: " + credential.getExpirationTimeMilliseconds());
         return credential;
     }
 
