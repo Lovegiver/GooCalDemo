@@ -10,12 +10,14 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
-import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.client.util.store.DataStoreFactory;
+import com.google.api.client.util.store.MemoryDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,9 +26,13 @@ import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @ApplicationScoped
 public class CalendarServiceImpl implements CalendarService {
+
+    private final DataStoreFactory dbDataStoreFactory;
+
     /**
      * Application name.
      */
@@ -48,14 +54,20 @@ public class CalendarServiceImpl implements CalendarService {
             Collections.singletonList(CalendarScopes.CALENDAR_READONLY);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
 
+    public CalendarServiceImpl(DataStoreFactory dbDataStoreFactory) {
+        this.dbDataStoreFactory = dbDataStoreFactory;
+    }
+
     /**
      * Creates an authorized Credential object.
      *
      * @param HTTP_TRANSPORT The network HTTP Transport.
+     * @param userUUID
      * @return An authorized Credential object.
      * @throws IOException If the credentials.json file cannot be found.
      */
-    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
+    @Transactional
+    public Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT, String userUUID)
             throws IOException {
         // Load client secrets.
         InputStream in = CalendarServiceImpl.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
@@ -68,14 +80,15 @@ public class CalendarServiceImpl implements CalendarService {
         // Build flow and trigger user authorization request.
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
+//                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
+                .setDataStoreFactory(this.dbDataStoreFactory)
                 .setAccessType("offline")
                 .build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder()
                 .setPort(8888)
                 .setCallbackPath("/optime/googlecalendar/Callback")
                 .build();
-        Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+        Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize(userUUID);
         //returns an authorized Credential object.
         System.out.println("Access token: " + credential.getAccessToken());
         System.out.println("Refresh token: " + credential.getRefreshToken());
@@ -83,11 +96,12 @@ public class CalendarServiceImpl implements CalendarService {
         return credential;
     }
 
-    public void getGoogleCalendarEvents() throws IOException, GeneralSecurityException {
+    public void getGoogleCalendarEvents(String uuid) throws IOException, GeneralSecurityException, ExecutionException, InterruptedException {
+        System.out.println("Received UUID: " + uuid);
         // Build a new authorized API client service.
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         Calendar service =
-                new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT, uuid))
                         .setApplicationName(APPLICATION_NAME)
                         .build();
 

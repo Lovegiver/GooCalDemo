@@ -1,18 +1,19 @@
 package com.lovegiver.training.optical.repository;
 
 import com.lovegiver.training.optical.entity.User;
-import io.quarkus.hibernate.reactive.panache.PanacheRepository;
-import io.smallrye.mutiny.Uni;
+import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+
+import java.util.UUID;
 
 @ApplicationScoped
 public class UserRepository implements PanacheRepository<User> {
 
-    public Uni<User> findByUniqueId(String uuid) {
-        return find("uniqueId", uuid).firstResult();
+    public User findByUsername(String username) {
+        return find("username", username).firstResult();
     }
 
-    public Uni<User> findByGoogleUserId(String googleUserId) {
-        return find("googleUserId", googleUserId).firstResult();
+    public User findByUniqueId(UUID uniqueId) {
+        return find("uniqueId", uniqueId).firstResult();
     }
 }
