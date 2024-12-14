@@ -62,6 +62,7 @@ public class AbstractDbDataStore<V extends Serializable> extends AbstractDataSto
         return storedCredentials;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public V get(String uuid) throws IOException {
         if (uuid == null) {
@@ -112,9 +113,7 @@ public class AbstractDbDataStore<V extends Serializable> extends AbstractDataSto
 
     @Override
     public DataStore<V> delete(String uuid) {
-        if (uuid == null) {
-            return this;
-        } else {
+        if (uuid != null) {
             this.lock.lock();
 
             try {
@@ -123,8 +122,8 @@ public class AbstractDbDataStore<V extends Serializable> extends AbstractDataSto
                 this.lock.unlock();
             }
 
-            return this;
         }
+        return this;
     }
 
     @Transactional

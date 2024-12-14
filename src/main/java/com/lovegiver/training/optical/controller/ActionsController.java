@@ -38,7 +38,7 @@ public class ActionsController {
         var username = split[0];
         var password = split[1];
         System.out.println("Username: " + username + " Password: " + password);
-        this.calendarService.getGoogleCalendarEvents(
+        this.calendarService.getUserEvents(
                 this.userService.findByUsername(username).uniqueId.toString()
         );
     }

@@ -10,6 +10,7 @@ import com.lovegiver.training.optical.exception.TechnicalException;
 import com.lovegiver.training.optical.repository.UserRepository;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ public class DbDataStoreFactory extends AbstractDataStoreFactory {
 
     private final PanacheRepository<User> repository;
 
+    @Inject
     public DbDataStoreFactory(PanacheRepository<User> repository) {
         this.repository = repository;
     }

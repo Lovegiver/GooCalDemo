@@ -6,6 +6,6 @@ import java.util.concurrent.ExecutionException;
 
 public interface CalendarService {
 
-    void getGoogleCalendarEvents(String uuid) throws IOException, GeneralSecurityException, ExecutionException, InterruptedException;
+    void getUserEvents(String uuid) throws IOException, GeneralSecurityException, ExecutionException, InterruptedException;
 
 }
