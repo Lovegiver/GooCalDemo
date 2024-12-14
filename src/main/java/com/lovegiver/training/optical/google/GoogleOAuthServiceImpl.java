@@ -14,6 +14,7 @@ import com.lovegiver.training.optical.service.CalendarServiceImpl;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.jboss.logging.Logger;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,8 +27,9 @@ import java.util.List;
 public class GoogleOAuthServiceImpl implements GoogleOAuthService {
 
     private final DataStoreFactory dbDataStoreFactory;
-
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+
+    private static final Logger LOG = Logger.getLogger(GoogleOAuthServiceImpl.class);
 
     /**
      * Global instance of the scopes required by this quickstart.
@@ -74,9 +76,9 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
                 .build();
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize(userUUID);
         //returns an authorized Credential object.
-        System.out.println("Access token: " + credential.getAccessToken());
-        System.out.println("Refresh token: " + credential.getRefreshToken());
-        System.out.println("Expiry: " + credential.getExpirationTimeMilliseconds());
+        LOG.debug("Access token: " + credential.getAccessToken());
+        LOG.debug("Refresh token: " + credential.getRefreshToken());
+        LOG.debug("Expiry: " + credential.getExpirationTimeMilliseconds());
         return credential;
     }
 }

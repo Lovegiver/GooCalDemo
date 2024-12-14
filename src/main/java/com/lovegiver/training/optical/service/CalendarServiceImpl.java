@@ -1,36 +1,24 @@
 package com.lovegiver.training.optical.service;
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
-import com.google.api.client.util.store.DataStoreFactory;
-import com.google.api.client.util.store.MemoryDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
-import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import com.lovegiver.training.optical.google.GoogleOAuthService;
+import com.lovegiver.training.optical.google.GoogleOAuthServiceImpl;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
+import org.jboss.logging.Logger;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 @ApplicationScoped
 public class CalendarServiceImpl implements CalendarService {
@@ -38,6 +26,8 @@ public class CalendarServiceImpl implements CalendarService {
     private final GoogleOAuthService oAuthService;
 
     private final Map<String, Calendar> usersCalendars = new HashMap<>();
+
+    private static final Logger LOG = Logger.getLogger(GoogleOAuthServiceImpl.class);
 
     private static final String APPLICATION_NAME = "OptimeApp";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
@@ -64,9 +54,10 @@ public class CalendarServiceImpl implements CalendarService {
                 .build());
     }
 
-    public void getUserEvents(String uuid) throws IOException, GeneralSecurityException, ExecutionException, InterruptedException {
-        System.out.println("Received UUID: " + uuid);
+    public void getUserEvents(String uuid) throws IOException, GeneralSecurityException {
+        LOG.debug("Received UUID: " + uuid);
         Calendar service = this.getUserCalendar(uuid);
+        this.usersCalendars.put(uuid, service);
         // List the next 10 events from the primary calendar.
         DateTime now = new DateTime(System.currentTimeMillis());
         Events events = service.events().list("primary")
@@ -77,15 +68,15 @@ public class CalendarServiceImpl implements CalendarService {
                 .execute();
         List<Event> items = events.getItems();
         if (items.isEmpty()) {
-            System.out.println("No upcoming events found.");
+            LOG.debug("No upcoming events found.");
         } else {
-            System.out.println("Upcoming events");
+            LOG.debug("Upcoming events");
             for (Event event : items) {
                 DateTime start = event.getStart().getDateTime();
                 if (start == null) {
                     start = event.getStart().getDate();
                 }
-                System.out.printf("%s (%s)\n", event.getSummary(), start);
+                LOG.debugf("%s (%s)\n", event.getSummary(), start);
             }
         }
     }
