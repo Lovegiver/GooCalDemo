@@ -6,6 +6,7 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.RestHeader;
 
 import java.io.IOException;
@@ -21,6 +22,8 @@ public class ActionsController {
     private final CalendarService calendarService;
     private final UserService userService;
 
+    private static final Logger LOG = Logger.getLogger(GoogleController.class);
+
     @Inject
     public ActionsController(CalendarService calendarService, UserService userService) {
         this.calendarService = calendarService;
@@ -30,14 +33,14 @@ public class ActionsController {
     @Path("/")
     @GET
     public void launch(@RestHeader("Authorization") String header) throws GeneralSecurityException, IOException, ExecutionException, InterruptedException {
-        System.out.println("Header = " + header);
+        LOG.debug("Header = " + header);
         var authHeader = header.substring("Basic".length()).trim();
         var decoded = new String(Base64.getDecoder().decode(authHeader), StandardCharsets.UTF_8);
-        System.out.println("Decoded = " + decoded);
+        LOG.debug("Decoded = " + decoded);
         var split = decoded.split(":");
         var username = split[0];
         var password = split[1];
-        System.out.println("Username: " + username + " Password: " + password);
+        LOG.debug("Username: " + username + " Password: " + password);
         this.calendarService.getUserEvents(
                 this.userService.findByUsername(username).uniqueId.toString()
         );
