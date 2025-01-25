@@ -1,5 +1,6 @@
 package com.lovegiver.training.optical.controller;
 
+import com.lovegiver.training.optical.entity.User;
 import com.lovegiver.training.optical.service.CalendarService;
 import com.lovegiver.training.optical.service.UserService;
 import jakarta.annotation.security.RolesAllowed;
@@ -10,9 +11,11 @@ import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.RestHeader;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @Path("/actions")
@@ -32,7 +35,7 @@ public class ActionsController {
 
     @Path("/")
     @GET
-    public void launch(@RestHeader("Authorization") String header) throws GeneralSecurityException, IOException, ExecutionException, InterruptedException {
+    public void launch(@RestHeader("Authorization") String header) throws GeneralSecurityException, IOException, ExecutionException, InterruptedException, URISyntaxException {
         LOG.debug("Header = " + header);
         var authHeader = header.substring("Basic".length()).trim();
         var decoded = new String(Base64.getDecoder().decode(authHeader), StandardCharsets.UTF_8);
@@ -41,8 +44,11 @@ public class ActionsController {
         var username = split[0];
         var password = split[1];
         LOG.debug("Username: " + username + " Password: " + password);
-        this.calendarService.getUserEvents(
-                this.userService.findByUsername(username).uniqueId.toString()
-        );
+        Optional<User> optionalUser = userService.findByUsername(username);
+        if (optionalUser.isPresent()) {
+            this.calendarService.getUserEvents(optionalUser.get().uniqueId.toString());
+        }
+
     }
+
 }

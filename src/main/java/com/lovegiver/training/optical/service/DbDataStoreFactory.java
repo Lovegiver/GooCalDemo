@@ -7,15 +7,16 @@ import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.DataStoreFactory;
 import com.lovegiver.training.optical.entity.User;
 import com.lovegiver.training.optical.exception.TechnicalException;
-import com.lovegiver.training.optical.repository.UserRepository;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -72,11 +73,15 @@ public class DbDataStoreFactory extends AbstractDataStoreFactory {
         @Override
         @Transactional
         public void save(String uuid, V storedCredential) {
-            User user = ((UserRepository) this.repository).findByUniqueId(UUID.fromString(uuid));
-            user.setAccessToken(((StoredCredential) storedCredential).getAccessToken());
-            user.setRefreshToken(((StoredCredential) storedCredential).getRefreshToken());
-            user.setTokenExpiry(((StoredCredential) storedCredential).getExpirationTimeMilliseconds());
-            user.persistAndFlush();
+            @NotNull Optional<User> optionalUser = User.findByUniqueId(UUID.fromString(uuid));
+            if (optionalUser.isPresent()) {
+                User user = optionalUser.get();
+                user.accessToken = ((StoredCredential) storedCredential).getAccessToken();
+                user.refreshToken = ((StoredCredential) storedCredential).getRefreshToken();
+                user.tokenExpiry = ((StoredCredential) storedCredential).getExpirationTimeMilliseconds();
+                user.persistAndFlush();
+            }
+
         }
     }
 }

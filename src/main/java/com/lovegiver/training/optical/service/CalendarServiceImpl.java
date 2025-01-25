@@ -6,6 +6,8 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
+import com.google.api.services.calendar.model.CalendarList;
+import com.google.api.services.calendar.model.Channel;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import com.lovegiver.training.optical.google.GoogleOAuthService;
@@ -15,10 +17,13 @@ import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @ApplicationScoped
 public class CalendarServiceImpl implements CalendarService {
@@ -54,13 +59,41 @@ public class CalendarServiceImpl implements CalendarService {
                 .build());
     }
 
-    public void getUserEvents(String uuid) throws IOException, GeneralSecurityException {
+    public void getUserEvents(String uuid) throws IOException, GeneralSecurityException, URISyntaxException {
         LOG.debug("Received UUID: " + uuid);
-        Calendar service = this.getUserCalendar(uuid);
-        this.usersCalendars.put(uuid, service);
+        Calendar calendar = this.getUserCalendar(uuid);
+        this.usersCalendars.put(uuid, calendar);
+
+        // Primary Calendars
+        LOG.info("----- PRIMARY CALENDAR -----");
+        Calendar.Calendars calendars = calendar.calendars();
+        com.google.api.services.calendar.model.Calendar primary = calendars.get("primary").execute();
+        LOG.info("PRIMARY ID: " + primary.getId());
+        LOG.info("PRIMARY SUMMARY: " + primary.getSummary());
+        LOG.info("PRIMARY KIND: " + primary.getKind());
+        LOG.info("PRIMARY ETAG: " + primary.getEtag());
+
+        // Calendars list
+        LOG.info("----- CALENDARS LIST -----");
+        CalendarList list = calendar.calendarList().list().execute();
+        LOG.info("CALENDARS LIST ETAG: " + list.getEtag());
+        LOG.info("CALENDARS LIST KIND: " + list.getKind());
+        LOG.info("CALENDARS LIST NEXT PAGE TOKEN: " + list.getNextPageToken());
+        LOG.info("CALENDARS LIST NEXT SYNC TOKEN: " + list.getNextSyncToken());
+        LOG.info("CALENDARS LIST SIZE: " + list.getItems().size());
+        list.getItems().forEach( item -> {
+            LOG.info("ITEM ID: " + item.getId());
+            LOG.info("ITEM DESC:" + item.getDescription());
+            LOG.info("ITEM KIND:" + item.getKind());
+            LOG.info("ITEM SUMMARY:" + item.getSummary());
+            LOG.info("ITEM ETAG:" + item.getEtag());
+            LOG.info("ITEM PRIMARY: " + item.getPrimary());
+        });
+
         // List the next 10 events from the primary calendar.
+        LOG.info("----- EVENTS LIST -----");
         DateTime now = new DateTime(System.currentTimeMillis());
-        Events events = service.events().list("primary")
+        Events events = calendar.events().list("primary")
                 .setMaxResults(10)
                 .setTimeMin(now)
                 .setOrderBy("startTime")
@@ -79,6 +112,27 @@ public class CalendarServiceImpl implements CalendarService {
                 LOG.debugf("%s (%s)\n", event.getSummary(), start);
             }
         }
+
+        LOG.info("----- WATCH -----");
+        URI uri = new URI("https://lovegiver.net/optime/googlecalendar/notifications");
+        Calendar.Events.Watch watched = calendar.events().watch(
+                "primary",
+                new Channel()
+                        .setId(uuid)
+                        .setType("web_hook")
+                        .setAddress(uri.toURL().toString())
+                        .setToken("token-" + uuid)
+        );
+        Channel channel = watched.execute();
+        String id = channel.getId();
+        LOG.info("Found events for " + uuid + ": " + watched);
+
+        LOG.info("WATCH -> " + watched.getCalendarId());
+        LOG.info("WATCH -> " + watched.getOauthToken());
+        LOG.info("WATCH -> " + watched.getUriTemplate());
+        LOG.info("WATCH -> " + watched.getHttpContent().getType());
+        LOG.info("WATCH -> " + watched.getLastResponseHeaders());
+        LOG.info("CHANNEL -> " + channel.getId());
     }
 
 }

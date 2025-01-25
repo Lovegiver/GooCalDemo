@@ -38,6 +38,8 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
     private static final List<String> SCOPES =
             Collections.singletonList(CalendarScopes.CALENDAR_READONLY);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
+    private static final int CALLBACK_PORT = 8888;
+    private static final String CALLBACK_PATH = "/optime/googlecalendar/callback";
 
     @Inject
     public GoogleOAuthServiceImpl(DataStoreFactory dbDataStoreFactory) {
@@ -71,8 +73,8 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
                 .setAccessType("offline")
                 .build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-                .setPort(8888)
-                .setCallbackPath("/optime/googlecalendar/Callback")
+                .setPort(CALLBACK_PORT)
+                .setCallbackPath(CALLBACK_PATH)
                 .build();
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize(userUUID);
         //returns an authorized Credential object.

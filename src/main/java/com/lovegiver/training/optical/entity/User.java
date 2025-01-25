@@ -1,5 +1,6 @@
 package com.lovegiver.training.optical.entity;
 
+import com.lovegiver.training.optical.payload.Message;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import io.quarkus.security.jpa.Password;
@@ -9,16 +10,20 @@ import io.quarkus.security.jpa.Username;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
 
 @Entity
-@Table(name = "test_user")
+@Table(name = "opt_user")
 @UserDefinition
 public class User extends PanacheEntity {
     @Username
+    @Column(unique = true)
     public String username;
     @Password
     public String password;
@@ -35,78 +40,27 @@ public class User extends PanacheEntity {
     @Column
     public long tokenExpiry;
 
-    public static String add(String username, String password, String role) {
+    @Contract("_, _, _ -> new")
+    public static @NotNull Message<String> createUserWithRole(String username, String password, String role) {
         User user = new User();
         user.username = username;
         user.password = BcryptUtil.bcryptHash(password);
         user.role = role;
         user.uniqueId = UUID.randomUUID();
         user.persist();
-        return user.uniqueId.toString();
+        return new Message<>(user.uniqueId.toString());
     }
 
-    public String getUsername() {
-        return username;
+    public static @NotNull Optional<User> findByUsername(String username) {
+        return Optional.ofNullable(find("username", username).firstResult());
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public static @NotNull Optional<User> findByUsernameAndPassword(String username, String password) {
+        return Optional.ofNullable(find("username = ?1 and password = ?2", username, password).firstResult());
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public UUID getUniqueId() {
-        return uniqueId;
-    }
-
-    public void setUniqueId(UUID uniqueId) {
-        this.uniqueId = uniqueId;
-    }
-
-    public String getGoogleUserId() {
-        return googleUserId;
-    }
-
-    public void setGoogleUserId(String googleUserId) {
-        this.googleUserId = googleUserId;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
-    public long getTokenExpiry() {
-        return tokenExpiry;
-    }
-
-    public void setTokenExpiry(long tokenExpiry) {
-        this.tokenExpiry = tokenExpiry;
+    public static @NotNull Optional<User> findByUniqueId(UUID uniqueId) {
+        return Optional.ofNullable(find("uniqueId", uniqueId).firstResult());
     }
 
     @Override

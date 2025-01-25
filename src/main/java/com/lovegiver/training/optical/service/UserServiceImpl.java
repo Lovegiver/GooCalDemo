@@ -2,30 +2,39 @@ package com.lovegiver.training.optical.service;
 
 import com.lovegiver.training.optical.entity.User;
 import com.lovegiver.training.optical.payload.Credentials;
-import com.lovegiver.training.optical.repository.UserRepository;
+import com.lovegiver.training.optical.payload.Message;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 @ApplicationScoped
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
-
     private static final String ROLE = "user";
 
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserServiceImpl() {
     }
 
     @Override
     @Transactional
-    public String addUser(Credentials credentials) {
-        return User.add(credentials.getLogin(), credentials.getPassword(), ROLE);
+    public @NotNull Message<String> addUser(Credentials credentials) {
+        if (this.findByUsername(credentials.getLogin()).isPresent()) {
+            return new Message<>("Username already exists", true);
+        }
+        return User.createUserWithRole(credentials.getLogin(), credentials.getPassword(), ROLE);
     }
 
     @Override
     @Transactional
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public @NotNull Optional<User> findByUsername(String username) {
+        return User.findByUsername(username);
+    }
+
+    @Override
+    @Transactional
+    public @NotNull Optional<User> findByUsernameAndPassword(@NotNull Credentials credentials) {
+        return User.findByUsernameAndPassword(credentials.getLogin(), credentials.getPassword());
     }
 }
