@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface UserService {
 
-    @NotNull Message<String> addUser(Credentials credentials);
+    @NotNull Message<String> addUser(@NotNull Credentials credentials);
 
-    @NotNull Optional<User> findByUsername(String username);
+    @NotNull Optional<User> findByUsername(@NotNull String username);
 
-    @NotNull Optional<User> findByUsernameAndPassword(Credentials credentials);
+    @NotNull Optional<User> findByUsernameAndPassword(@NotNull Credentials credentials);
 }

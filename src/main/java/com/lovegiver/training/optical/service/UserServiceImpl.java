@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public @NotNull Message<String> addUser(Credentials credentials) {
+    public @NotNull Message<String> addUser(@NotNull Credentials credentials) {
         if (this.findByUsername(credentials.getLogin()).isPresent()) {
             return new Message<>("Username already exists", true);
         }
@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public @NotNull Optional<User> findByUsername(String username) {
+    public @NotNull Optional<User> findByUsername(@NotNull String username) {
         return User.findByUsername(username);
     }
 

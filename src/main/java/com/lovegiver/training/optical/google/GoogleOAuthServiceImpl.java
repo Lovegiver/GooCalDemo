@@ -78,8 +78,8 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
                 .build();
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize(userUUID);
         //returns an authorized Credential object.
-        LOG.debug("Access token: " + credential.getAccessToken());
-        LOG.debug("Refresh token: " + credential.getRefreshToken());
+        LOG.debug("Access nextSyncToken: " + credential.getAccessToken());
+        LOG.debug("Refresh nextSyncToken: " + credential.getRefreshToken());
         LOG.debug("Expiry: " + credential.getExpirationTimeMilliseconds());
         return credential;
     }

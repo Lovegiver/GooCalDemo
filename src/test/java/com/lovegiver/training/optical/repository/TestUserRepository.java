@@ -18,17 +18,19 @@ public class TestUserRepository implements PanacheRepository<User> {
     void initUserRepository() {
         deleteAll();
 
-        User fred = new User();
-        fred.username = "frederic.courcier@gmail.com";
-        fred.password = "pericard42";
-        fred.role = "user";
-        fred.uniqueId = UUID.randomUUID();
+        User fred = User.Builder.builder()
+                .username("frederic.courcier@gmail.com")
+                .password("pericard42")
+                .role("user")
+                .uniqueId(UUID.randomUUID())
+                .build();
 
-        User carole = new User();
-        carole.username = "carole.courcier@gmail.com";
-        carole.password = "pericard42";
-        carole.role = "user";
-        carole.uniqueId = UUID.randomUUID();
+        User carole = User.Builder.builder()
+                .username("carole.courcier@gmail.com")
+                .password("pericard42")
+                .role("user")
+                .uniqueId(UUID.randomUUID())
+                .build();
 
         persist(fred, carole);
     }

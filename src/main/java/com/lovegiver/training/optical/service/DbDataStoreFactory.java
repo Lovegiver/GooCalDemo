@@ -7,7 +7,6 @@ import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.DataStoreFactory;
 import com.lovegiver.training.optical.entity.User;
 import com.lovegiver.training.optical.exception.TechnicalException;
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -22,39 +21,30 @@ import java.util.UUID;
 @ApplicationScoped
 public class DbDataStoreFactory extends AbstractDataStoreFactory {
 
-    private final PanacheRepository<User> repository;
-
     @Inject
-    public DbDataStoreFactory(PanacheRepository<User> repository) {
-        this.repository = repository;
+    public DbDataStoreFactory() {
+
     }
 
     @Override
     protected <V extends Serializable> DataStore<V> createDataStore(String storeId) {
-        return new DbDataStore<>(this, storeId, this.repository);
+        return new DbDataStore<>(this, storeId);
     }
 
     static class DbDataStore<V extends Serializable> extends AbstractDbDataStore<V> {
 
-        private final PanacheRepository<User> repository;
-
         protected DbDataStore(
                 DataStoreFactory dataStoreFactory,
-                String storeId,
-                PanacheRepository<User> repository
+                String storeId
         ) {
             super(dataStoreFactory, storeId);
-            if (repository == null) {
-                throw new TechnicalException("Repository is null");
-            }
-            this.repository = repository;
             if (super.keyValueMap.isEmpty()) {
                 initialize();
             }
         }
 
         void initialize() {
-            List<User> allUsers = this.repository.listAll();
+            List<User> allUsers = User.listAll();
             allUsers.forEach(user -> {
                 if (user.accessToken != null || user.refreshToken != null || user.tokenExpiry > 0) {
                     StoredCredential storedCredential = new StoredCredential();

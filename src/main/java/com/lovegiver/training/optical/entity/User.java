@@ -40,13 +40,25 @@ public class User extends PanacheEntity {
     @Column
     public long tokenExpiry;
 
+    private User(@NotNull Builder builder) {
+        username = builder.username;
+        password = builder.password;
+        role = builder.role;
+        uniqueId = builder.uniqueId;
+    }
+
+    protected User() {
+
+    }
+
     @Contract("_, _, _ -> new")
     public static @NotNull Message<String> createUserWithRole(String username, String password, String role) {
-        User user = new User();
-        user.username = username;
-        user.password = BcryptUtil.bcryptHash(password);
-        user.role = role;
-        user.uniqueId = UUID.randomUUID();
+        User user = Builder.builder()
+                .username(username)
+                .password(BcryptUtil.bcryptHash(password))
+                .role(role)
+                .uniqueId(UUID.randomUUID())
+                .build();
         user.persist();
         return new Message<>(user.uniqueId.toString());
     }
@@ -56,7 +68,16 @@ public class User extends PanacheEntity {
     }
 
     public static @NotNull Optional<User> findByUsernameAndPassword(String username, String password) {
-        return Optional.ofNullable(find("username = ?1 and password = ?2", username, password).firstResult());
+        User user = find("username", username).firstResult();
+        if (user != null) {
+            if (BcryptUtil.matches(password, user.password)) {
+                return Optional.of(user);
+            } else {
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 
     public static @NotNull Optional<User> findByUniqueId(UUID uniqueId) {
@@ -88,5 +109,45 @@ public class User extends PanacheEntity {
                 .add("tokenExpiry=" + tokenExpiry)
                 .add("id=" + id)
                 .toString();
+    }
+
+    public static final class Builder {
+        private String username;
+        private String password;
+        private String role;
+        private UUID uniqueId;
+
+        private Builder() {
+        }
+
+        @Contract(value = " -> new", pure = true)
+        public static @NotNull Builder builder() {
+            return new Builder();
+        }
+
+        public Builder username(String val) {
+            username = val;
+            return this;
+        }
+
+        public Builder password(String val) {
+            password = val;
+            return this;
+        }
+
+        public Builder role(String val) {
+            role = val;
+            return this;
+        }
+
+        public Builder uniqueId(UUID val) {
+            uniqueId = val;
+            return this;
+        }
+
+        @Contract(" -> new")
+        public @NotNull User build() {
+            return new User(this);
+        }
     }
 }

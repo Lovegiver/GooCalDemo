@@ -121,7 +121,7 @@ public class CalendarServiceImpl implements CalendarService {
                         .setId(uuid)
                         .setType("web_hook")
                         .setAddress(uri.toURL().toString())
-                        .setToken("token-" + uuid)
+                        .setToken("nextSyncToken-" + uuid)
         );
         Channel channel = watched.execute();
         String id = channel.getId();

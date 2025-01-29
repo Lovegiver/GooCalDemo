@@ -62,39 +62,39 @@ public class GoogleController {
     ) throws JsonProcessingException {
         LOG.info("WATCH function");
         if (channelId != null) {
-            LOG.info("channelId received: " + channelId);
+            LOG.info("channelId createdAt: " + channelId);
         } else {
-            LOG.info("channelId received null");
+            LOG.info("channelId createdAt null");
         }
         if (channelToken != null) {
-            LOG.info("channelToken received: " + channelToken);
+            LOG.info("channelToken createdAt: " + channelToken);
         } else {
-            LOG.info("channelToken received null");
+            LOG.info("channelToken createdAt null");
         }
         if (channelExpiration != null) {
-            LOG.info("channelExpiration received: " + channelExpiration);
+            LOG.info("channelExpiration createdAt: " + channelExpiration);
         } else {
-            LOG.info("channelExpiration received null");
+            LOG.info("channelExpiration createdAt null");
         }
         if (resourceId != null) {
-            LOG.info("resourceId received: " + resourceId);
+            LOG.info("resourceId createdAt: " + resourceId);
         } else {
-            LOG.info("resourceId received null");
+            LOG.info("resourceId createdAt null");
         }
         if (resourceUri != null) {
-            LOG.info("resourceUri received: " + resourceUri);
+            LOG.info("resourceUri createdAt: " + resourceUri);
         } else {
-            LOG.info("resourceUri received null");
+            LOG.info("resourceUri createdAt null");
         }
         if (resourceState != null) {
-            LOG.info("resourceState received: " + resourceState);
+            LOG.info("resourceState createdAt: " + resourceState);
         } else {
-            LOG.info("resourceState received null");
+            LOG.info("resourceState createdAt null");
         }
         if (messageNumber != 0) {
-            LOG.info("messageNumber received: " + messageNumber);
+            LOG.info("messageNumber createdAt: " + messageNumber);
         } else {
-            LOG.info("messageNumber received = 0");
+            LOG.info("messageNumber createdAt = 0");
         }
         return Response.accepted().build();
     }

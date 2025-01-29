@@ -67,7 +67,7 @@ public class EventsWatchContent {
                 .add("id='" + id + "'")
                 .add("resourceId='" + resourceId + "'")
                 .add("resourceUri='" + resourceUri + "'")
-                .add("token='" + token + "'")
+                .add("nextSyncToken='" + token + "'")
                 .add("expiration=" + expiration)
                 .toString();
     }
